@@ -185,10 +185,10 @@ Sample Config
 
 ### DEMO
 
-** CLI
+**CLI
 Set is_debug in config.json to true
 ![](https://github.com/LuckyMallari/orange-assist/blob/master/_images/cli.gif?raw=true)
 
-** Tester
+**Tester
 Set is_debug in config.json to false, then use tester.html
 ![](https://github.com/LuckyMallari/orange-assist/blob/master/_images/orangeAssistHtmlDemo.gif?raw=true)

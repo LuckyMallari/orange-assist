@@ -1,4 +1,4 @@
-_**OrangeAssist**_
+**OrangeAssist**
 
 
 **What this does**:
@@ -68,6 +68,111 @@ Dont worry. If I don't create the binding, I will at least create a HOW-TO.
         * Voice & Audio Activity
     5. [Register your device](https://developers.google.com/assistant/sdk/guides/library/python/embed/register-device)
         1. **REMEMBER Model Id. We will need that for later**
-        2. Here's Mine:....
-        
-# W-I-P
+3. [Clone the repo](https://github.com/LuckyMallari/orange-assist)
+4. I advise that you create a virtual environment for this.
+    1. Follow [VENV Instructions](https://packaging.python.org/guides/installing-using-pip-and-virtualenv/) if you have not created a virtual environment before.
+    2. Activate the environment.
+5. Install the required librabries:
+    ```pip install -r requirements.txt```
+6. Assuming you have configured everything, you need create the credentials file:
+    1. Follow instructions from [this Google page](https://developers.google.com/assistant/sdk/guides/library/python/embed/install-sample#generate_credentials)
+6. Run the code!
+    ```python -m or```
+6. Open helpers/tester.html
+
+      
+### Device Registration
+If you have done the above, this will only allow your server to interact with Google Assistant SDK. If you actually want your assistant to show up under the 
+Google Home app, you have **[REGISTER](https://developers.google.com/assistant/sdk/reference/device-registration/device-tool)** your device.
+
+
+## Notes
+1. This is written under Python 3.7. If there is a need for a lower version, I am willing to help and refactor.
+
+## Empty responses
+1. Google Assistant sometimes return an empty response depending on the query. In some cases, the response is empty but Audio is played on the device. Try different
+[screen_modes](https://developers.google.com/assistant/sdk/reference/rpc/google.assistant.embedded.v1alpha2#google.assistant.embedded.v1alpha2.ScreenOutConfig.ScreenMode) to see which best suits your query. This is a [known issue](https://github.com/googlesamples/assistant-sdk-python/issues/158) which currently does not have a fix.
+
+## REST API
+
+#### Request
+    1. Send a POST request to the your server instance: http://< yourserver > : < port > / assist/ask.
+    2. Body of the request includes the following:
+    
+| Key | Required | Description |
+|-----|:--------:|-------------|
+| request | Yes | The actual query. You don't need to include "Okay, Google"
+| uuid | No | If you include this, the response will echo it back to you.
+| output_html_file | No | Where to write the response data
+| output_audio_file | No | Where to write the audio data
+| is_play_audio | No | If true, this will actually play the audio on the machine's default speaker
+| screen_mode | No | Valid values from [here](https://developers.google.com/assistant/sdk/reference/rpc/google.assistant.embedded.v1alpha2#google.assistant.embedded.v1alpha2.ScreenOutConfig.ScreenMode)
+| language | No | Valid calues from [here](https://developers.google.com/assistant/sdk/reference/rpc/languages)
+| is_return_html | No | If true, the response JSON will have the complete html in the html field 
+
+Sample Request:
+```
+{
+    "request": "What time is it",
+    "uuid": 12123e23422123,
+    "output_html_file": someoutput.html,
+    "output_audio_file": someaudio.wav,
+    "is_play_audio": true,
+    "screen_mode": "OFF",
+    "language": "en-US",
+    "is_return_html": true
+}
+```
+#### Response
+
+| Key | Description |
+|-----|------------|
+| request | The actual query echoed back.
+| uuid | UUID echoed back.
+| output_html_file | Where it saved the html
+| output_audio_file | Where it saved the audio data
+| html | Contains the full html code if any.
+
+Sample Response:
+```
+{
+    "output_audio_file": "/output/output.wav",
+    "output_html_file": "/output/output.html",
+    "request": "What time is it",
+    "text": "It's 5:39.",
+    "uuid": "9303483171002469"
+}
+```
+
+#### Configuration
+Configuration is done on the config.json file
+| Key | Description |
+|-----|------------|
+is_debug | If true, you enter a console-based loop.
+is_verbose | Logging level
+host | Host for the server
+port | Port for the server
+username | If you set this with the password, a Basic Auth is enabled for the POST of the REST API. Leave blank to disable
+password | If you set this with the password, a Basic Auth is enabled for the POST of the REST API. Leave blank to disable
+device_model_id | [The device model ID](https://developers.google.com/assistant/sdk/guides/library/python/embed/register-device)
+device_id | [The device ID](https://developers.google.com/assistant/sdk/guides/library/python/embed/register-device)
+on_success_post_to | Not yet implemented
+credentials_file | Path to your credentials file.
+delete_output_files_sec | Files are kept for this number of seconds. After that, files are deleted.
+screen_mode | Valid values from [here](https://developers.google.com/assistant/sdk/reference/rpc/google.assistant.embedded.v1alpha2#google.assistant.embedded.v1alpha2.ScreenOutConfig.ScreenMode)
+project_id | Your Project ID
+{
+    "is_debug": false,
+    "is_verbose": true,
+    "host": "0.0.0.0",
+    "port": "2828",
+    "username": "lucky",
+    "password": "charms",
+    "device_model_id" : "orangeassistant-orangeassistant-yp61iy",
+    "device_id" : "orangeassistant",
+    "on_success_post_to": "http://url_to/post_to",
+    "credentials_file": "credentials.json",
+    "delete_output_files_sec": 60,
+    "screen_mode": "PLAYING",
+    "project_id": "orangeassistant"
+}

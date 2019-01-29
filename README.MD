@@ -39,12 +39,12 @@ When I wake up (usually at 4AM), I go to the kitchen to prepare my breakfast. My
 
 You can also REGISTER the instance and OrangeAssist will show up as a device under your Google Assistant app:
 
-![image|243x500](upload://mFxy5nTzEKNhSRSmqifv5TybwYd.png) 
+![image|243x500](https://github.com/LuckyMallari/orange-assist/blob/master/_images/homeScreenshot.png?raw=true) 
 
 As far as creating the binding. I'm not too keen on doing it just yet. Google Assistant SDK is not that mature yet, and still keeps changing. 
 
 Dont mind the blocky gradient (it's a gif with limited colors)
-![ohbridge|690x491](upload://1nkR8QwaD7KDiPomusdpOhNrxSw.gif)
+![ohbridge|690x491](https://github.com/LuckyMallari/orange-assist/blob/master/_images/HabPanelDemo.gif?raw=true)
 
 Dont worry. If I don't create the binding, I will at least create a HOW-TO.
 
@@ -163,6 +163,9 @@ credentials_file | Path to your credentials file.
 delete_output_files_sec | Files are kept for this number of seconds. After that, files are deleted.
 screen_mode | Valid values from [here](https://developers.google.com/assistant/sdk/reference/rpc/google.assistant.embedded.v1alpha2#google.assistant.embedded.v1alpha2.ScreenOutConfig.ScreenMode)
 project_id | Your Project ID
+
+Sample Config
+```
 {
     "is_debug": false,
     "is_verbose": true,
@@ -170,11 +173,22 @@ project_id | Your Project ID
     "port": "2828",
     "username": "lucky",
     "password": "charms",
-    "device_model_id" : "orangeassistant-orangeassistant-yp61iy",
-    "device_id" : "orangeassistant",
+    "device_model_id" : "XXX",
+    "device_id" : "XXX",
     "on_success_post_to": "http://url_to/post_to",
     "credentials_file": "credentials.json",
     "delete_output_files_sec": 60,
     "screen_mode": "PLAYING",
-    "project_id": "orangeassistant"
+    "project_id": "XXX"
 }
+```
+
+### DEMO
+
+** CLI
+Set is_debug in config.json to true
+![](https://github.com/LuckyMallari/orange-assist/blob/master/_images/cli.gif?raw=true)
+
+** Tester
+Set is_debug in config.json to false, then use tester.html
+![](https://github.com/LuckyMallari/orange-assist/blob/master/_images/orangeAssistHtmlDemo.gif?raw=true)

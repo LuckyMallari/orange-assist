@@ -1,5 +1,5 @@
 {
-    "is_debug": false,
+    "is_debug": true,
     "is_verbose": true,
     "host": "0.0.0.0",
     "port": "2828",
@@ -10,6 +10,6 @@
     "on_success_post_to": "http://url_to/post_to",
     "credentials_file": "credentials.json",
     "delete_output_files_sec": 60,
-    "screen_mode": "PLAYING",
+    "screen_mode": "SCREEN_MODE_UNSPECIFIED",
     "project_id": "orangeassistant"
 }

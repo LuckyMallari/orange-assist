@@ -145,7 +145,9 @@ Sample Response:
 ```
 
 #### Configuration
+
 Configuration is done on the config.json file
+
 | Key | Description |
 |-----|------------|
 is_debug | If true, you enter a console-based loop.

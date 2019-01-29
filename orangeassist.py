@@ -111,6 +111,11 @@ class OrangeAssistant():
         logging.info(f"Connecting to {ASSISTANT_API_ENDPOINT}")
 
     def assist(self, r):
+        if self.cfg.is_debug:
+            r.screen_mode = self.cfg.screen_mode
+        if not r.request:
+            return "NO OUTPUT. DOH!",""
+
         # Send a text request to the Assistant and playback the response.
         def iter_assist_requests():
             config = embedded_assistant_pb2.AssistConfig(
@@ -199,5 +204,5 @@ class OrangeAssistant():
 
         if self.conversation_stream_file:
             self.conversation_stream_file.close()
-        print("Request complete")
+        print(text_response)
         return text_response, html_response

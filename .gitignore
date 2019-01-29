@@ -116,3 +116,6 @@ dmypy.json
 
 # env
 .pythonEnv
+
+# Ignore output files
+output/

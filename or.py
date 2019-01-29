@@ -149,6 +149,8 @@ def create_task():
                 2.0, delete_file, (to_delete_audio,))
             delete_timer.start()
 
+    if not r.is_return_html:
+        h = ""
     r = Resp(status=None,
              request=r.request,
              text=t,

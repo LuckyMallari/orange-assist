@@ -1,143 +1,73 @@
-Python Samples for the Google Assistant gRPC API
-================================================
+_**OrangeAssist**_
 
-This repository contains a reference sample for the ``google-assistant-grpc`` Python package_.
 
-It implements the following features:
+**What this does**:
+This is basically Google Home **(GH)** Hub equivalent for HabPanel. It not only acts as a "audio-visual element," but it fully integrates to Google Assistant as if you are in front of a Google Assistant device (google home, google home mini, google home hub, etc).
 
-- Triggering a conversation using a key press
-- Audio recording of user queries (single or multiple consecutive queries)
-- Playback of the Assistant response
-- Conversation state management
-- Volume control
+We have a combination of 8 Google Devices (home, mini, hub) throughout the house and they work beautifully with openHAB **with few exceptions:**
+* You have a device supported by Google Assistant/Device but not openHAB
+* You have an openHAB device not supported by Google Assistant
+* You want Google Assistant to control security devices, rather than openHAB
 
-.. _package: https://pypi.python.org/pypi/google-assistant-grpc
+So basically, I have a few security locks that are supported by Google Home, but currently do not have an openHAB binding. I can say "Lock the front door" to GH, and it will lock it, but I can't lock them through an openhab rule. That's how/why i came up with orangeassist.
 
-Prerequisites
--------------
+I created this with python using [Google Assistant Service since the Library version does not support text input](https://developers.google.com/assistant/sdk/overview#features) yet. I didn't want it to run in same hardware as OH yet, so it's running in a tiny orange pi on a headless armbian. This orange pi also hosts my NCID server for my [caller id + habpanel integration](https://community.openhab.org/t/how-to-integrate-your-home-phone-with-openhab/39729)
 
-- `Python <https://www.python.org/>`_ (>= 3.4 recommended)
-- An `Actions Console Project <https://console.actions.google.com/>`_
-- A `Google account <https://myaccount.google.com/>`_
+Many of us here use Chromecast Binding as audio sink for OH, but we all know that using that basically STOPS whatever is currently playing and does not resume. With this new integration, instead of using `say()` in my rules, I simply send "broadcast XXXX" to **OrangeAssist** and can even use the built in GH chain commands like "broadcast time to eat then turn on kitchen lights"
 
-Setup
------
+A simple rule to send the command to **OrangeAssist**.
 
-- Install Python 3
+```val orangeassistPostURL = "http://lucky:charms@orangeassist:5000/assist/ask?html=1"
+val timeoutSec = 10
 
-    - Ubuntu/Debian GNU/Linux::
+rule "Send OrangeAssist Command"
+when
+	Item orangeassistcmd received command
+then
+	var result = sendHttpPostRequest(orangeassistPostURL, "text/plain", orangeassistcmd.state.toString, timeoutSec*1000)
+	postUpdate(orangeassistcmdResult, result)
+	orangeassistcmdSwitch.sendCommand(ON)
+end
+```
 
-        sudo apt-get update
-        sudo apt-get install python3 python3-venv
+As you may have noticed. I wrote the OrangeAssist REST API part with Basic Auth as a simple security.  Some might ask about the popup/slider. This HTML is provided by Google themselves as part of the SDK/API response.
 
-    - `MacOSX, Windows, Other <https://www.python.org/downloads/>`_
+_What I really like about this is that it opens EVERY QUERY you can think of and it will answer back, just like being in front of a Google Home device. The difference here is that you can automate those queries, and use  text as input instead of your voice._ 
 
-- Create a new virtual environment (recommended)::
+Here's one of my favorites:
+When I wake up (usually at 4AM), I go to the kitchen to prepare my breakfast. My security cameras (Blue Iris) detects motion and triggers OH. OH turns on the kitchen lights (zwave). After turning on the lights, OH sends **"how's my day"** to **OrangeAssist**, which then triggers a routine of my Google Home device. It tells me the weather, my appointments, how long my drive to work is, etc.
 
-    python3 -m venv env
-    env/bin/python -m pip install --upgrade pip setuptools wheel
-    source env/bin/activate
+You can also REGISTER the instance and OrangeAssist will show up as a device under your Google Assistant app:
 
-Authorization
--------------
+![image|243x500](upload://mFxy5nTzEKNhSRSmqifv5TybwYd.png) 
 
-- Follow the steps to `configure the Actions Console project and the Google account <httpsb://developers.google.com/assistant/sdk/guides/service/python/embed/config-dev-project-and-account>`_.
-- Follow the steps to `register a new device model and download the client secrets file <https://developers.google.com/assistant/sdk/guides/service/python/embed/register-device>`_.
-- Generate device credentials using ``google-oauthlib-tool``:
+As far as creating the binding. I'm not too keen on doing it just yet. Google Assistant SDK is not that mature yet, and still keeps changing. 
 
-    pip install --upgrade google-auth-oauthlib[tool]
-    google-oauthlib-tool --client-secrets path/to/client_secret_<client-id>.json --scope https://www.googleapis.com/auth/assistant-sdk-prototype --save --headless
+Dont mind the blocky gradient (it's a gif with limited colors)
+![ohbridge|690x491](upload://1nkR8QwaD7KDiPomusdpOhNrxSw.gif)
 
-Run the samples
----------------
+Dont worry. If I don't create the binding, I will at least create a HOW-TO.
 
-- Install the sample dependencies::
 
-    sudo apt-get install portaudio19-dev libffi-dev libssl-dev
-    pip install --upgrade -r requirements.txt
 
--  Verify audio setup::
+# Orange Assistant
 
-    # Record a 5 sec sample and play it back
-    python -m audio_helpers
-
-- Run the push to talk sample. The sample records a voice query after a key press and plays back the Google Assistant's answer::
-
-    python -m pushtotalk --device-id 'my-device-identifier' --device-model-id 'my-model-identifier'
-
-- Try some Google Assistant voice query like "What time is it?" or "Who am I?".
-
-- Try a device action query like "Turn on".
-
-- Run in verbose mode to see the gRPC communication with the Google Assistant API::
-
-    python -m pushtotalk --device-id 'my-device-identifier' --device-model-id 'my-model-identifier' -v
-
-- Send a pre-recorded request to the Assistant::
-
-    python -m pushtotalk --device-id 'my-device-identifier' --device-model-id 'my-model-identifier' -i in.wav
-
-- Save the Assistant response to a file::
-
-    python -m pushtotalk --device-id 'my-device-identifier' --device-model-id 'my-model-identifier' -o out.wav
-
-- Send text requests to the Assistant::
-
-    python -m textinput --device-id 'my-device-identifier' --device-model-id 'my-model-identifier'
-
-- Send a request to the Assistant from a local audio file and write the Assistant audio response to another file::
-
-    python -m audiofileinput --device-id 'my-device-identifier' --device-model-id 'my-model-identifier' -i in.wav -o out.wav
-
-Troubleshooting
----------------
-
-- Verify ALSA setup::
-
-    # Play a test sound
-    speaker-test -t wav
-
-    # Record and play back some audio using ALSA command-line tools
-    arecord --format=S16_LE --duration=5 --rate=16000 --file-type=raw out.raw
-    aplay --format=S16_LE --rate=16000 --file-type=raw out.raw
-
-- If Assistant audio is choppy, try adjusting the sound device's block size::
-
-    # If using a USB speaker or dedicated soundcard, set block size to "0"
-    # to automatically adjust the buffer size
-    python -m audio_helpers --audio-block-size=0
-
-    # If using the line-out 3.5mm audio jack on the device, set block size
-    # to a value larger than the `ConverseResponse` audio payload size
-    python -m audio_helpers --audio-block-size=3200
-
-    # Run the Assistant sample using the best block size value found above
-    python -m pushtotalk --audio-block-size=value
-
-- If Assistant audio is truncated, try adjusting the sound device's flush size::
-
-    # Set flush size to a value larger than the audio block size. You can
-    # run the sample using the --audio-flush-size flag as well.
-    python -m audio_helpers --audio-block-size=3200 --audio-flush-size=6400
-
-See also the `troubleshooting section <https://developers.google.com/assistant/sdk/guides/service/troubleshooting>`_ of the official documentation.
-
-License
--------
-
-Copyright (C) 2017 Google Inc.
-
-Licensed to the Apache Software Foundation (ASF) under one or more contributor
-license agreements.  See the NOTICE file distributed with this work for
-additional information regarding copyright ownership.  The ASF licenses this
-file to you under the Apache License, Version 2.0 (the "License"); you may not
-use this file except in compliance with the License.  You may obtain a copy of
-the License at
-
-  http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  See the
-License for the specific language governing permissions and limitations under
-the License.
+## Steps
+1. Familiarize yourself with [Google Assistant SDK](https://developers.google.com/assistant/sdk/overview)
+2. [Configure a Developer Project and Account Settings](https://developers.google.com/assistant/sdk/guides/library/python/embed/config-dev-project-and-account). The link already shows you the steps, but here they are anyway.
+    1. Go to [Google Actions](https://console.actions.google.com/)
+       1. If you don't have an existing project, click Add/Import
+       2. If you have an exiting project, just click it
+    2. [Enable Google Assistant API](https://console.developers.google.com/apis/api/embeddedassistant.googleapis.com/overview)
+       1. Make sure your project is selected (drop down on top)
+    3. [Configure Consent Screen](https://console.developers.google.com/apis/credentials/consent)
+    4. [Configure Activity Controls](https://myaccount.google.com/activitycontrols?pli=1) **(IMPORTANT!!)** Make sure these are enabled:
+        * Web & App Activity
+        * Include Chrome history and activity from sites, apps, and devices that use Google services
+        * Device Information
+        * Voice & Audio Activity
+    5. [Register your device](https://developers.google.com/assistant/sdk/guides/library/python/embed/register-device)
+        1. **REMEMBER Model Id. We will need that for later**
+        2. Here's Mine:....
+        
+# W-I-P

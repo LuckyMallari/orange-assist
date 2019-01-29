@@ -1,0 +1,15 @@
+{
+    "is_debug": false,
+    "is_verbose": true,
+    "host": "0.0.0.0",
+    "port": "2828",
+    "username": "lucky",
+    "password": "charms",
+    "device_model_id" : "orangeassistant-orangeassistant-yp61iy",
+    "device_id" : "orangeassistant",
+    "on_success_post_to": "http://url_to/post_to",
+    "credentials_file": "credentials.json",
+    "delete_output_files_sec": 60,
+    "screen_mode": "PLAYING",
+    "project_id": "orangeassistant"
+}

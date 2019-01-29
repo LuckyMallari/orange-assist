@@ -1,5 +1,4 @@
-**OrangeAssist**
-
+# OrangeAssist
 
 **What this does**:
 This is basically Google Home **(GH)** Hub equivalent for HabPanel. It not only acts as a "audio-visual element," but it fully integrates to Google Assistant as if you are in front of a Google Assistant device (google home, google home mini, google home hub, etc).
@@ -17,7 +16,8 @@ Many of us here use Chromecast Binding as audio sink for OH, but we all know tha
 
 A simple rule to send the command to **OrangeAssist**.
 
-```val orangeassistPostURL = "http://lucky:charms@orangeassist:5000/assist/ask?html=1"
+```
+val orangeassistPostURL = "http://lucky:charms@orangeassist:5000/assist/ask?html=1"
 val timeoutSec = 10
 
 rule "Send OrangeAssist Command"

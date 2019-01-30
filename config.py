@@ -18,4 +18,5 @@ class Config:
             self.screen_mode = j['screen_mode'] if 'screen_mode' in j else "PLAYING"
             self.delete_output_files_sec = j['delete_output_files_sec'] if 'delete_output_files_sec' in j else None
             self.project_id = j['project_id'] if 'project_id' in j else None
+            self.enable_speaker = j['enable_speaker'] if 'enable_speaker' in j else False
 

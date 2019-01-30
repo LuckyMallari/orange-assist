@@ -25,15 +25,15 @@ def log_print(m):
     print(m)
 
 def delete_file(f):
-    f = f"output/{f}"
+    f = "output/" + f
     if os.path.exists(f):
         try:
             os.remove(f)
-            logging.debug(f"Deleted: {f}")
+            logging.debug("Deleted: " + f)
         except Exception as e:
             logging.error(e)
     else:
-        logging.debug(f"File not found to delete: {f}")
+        logging.debug("File not found to delete: " + f)
 
 
 def sanitize_json(d):
@@ -67,7 +67,7 @@ def main():
 def debug_loop():
     print("DebugMode! Keep sending request. 'exit' to stop.")
     while True:
-        print(f"[Orange-->]: ", end='')
+        print("[Orange-->]: ", end='')
         q = input()
         if q == "exit":
             break
@@ -75,7 +75,7 @@ def debug_loop():
         r.request = q
         r.language = 'en-US'
         t, h = answer(r)
-        print(f"[<--Google]: {t}")
+        print("[<--Google]: " + t)
 
 
 def answer(r):
@@ -111,12 +111,12 @@ def index():
 @app.route('/output/<f>', methods=['GET'])
 def o(f):
     try:
-        with open(f'output/{f}') as the_file:
+        with open('output/' + f) as the_file:
             resp = the_file.read()
             the_file.close()
             return resp, 200
     except:
-        return f"can't find {f}", 404
+        return "can't find " + f, 404
 
 
 @app.route('/assist/ask', methods=['POST'])
@@ -124,15 +124,15 @@ def o(f):
 def create_task():
     r = Req(request.data.decode('utf-8'))
     t, h = answer(r)
-    log_print(f"request: {r.request}")
+    log_print("request: " + r.request)
 
     if r.output_html_file:
-        log_print(f"Output to {r.output_html_file}")
-        with open(f"output/{r.output_html_file}", 'wb+') as the_file:
+        log_print("Output to " + r.output_html_file)
+        with open("output/" + r.output_html_file, 'wb+') as the_file:
             try:
-                h += f"<!-- {str(datetime.datetime.now())} --> {h.decode('utf-8')}".encode("utf-8")
+                h += "<!-- " + str(datetime.datetime.now()) + " -->\n" + h.decode('utf-8').encode("utf-8")
                 the_file.write(h)
-                log_print(f"Written to {r.output_html_file}")
+                log_print("Written to " + {r.output_html_file})
                 if cfg.delete_output_files_sec and cfg.delete_output_files_sec > 0:
                     delete_timer = Timer(
                         int(cfg.delete_output_files_sec), delete_file, (r.output_html_file,))
@@ -143,7 +143,7 @@ def create_task():
                 the_file.close()
 
     if r.output_audio_file:
-        to_delete_audio = f"output/{r.output_audio_file}"
+        to_delete_audio = "output/" + r.output_audio_file
         if cfg.delete_output_files_sec and cfg.delete_output_files_sec > 0:
             delete_timer = Timer(
                 2.0, delete_file, (to_delete_audio,))
@@ -156,8 +156,8 @@ def create_task():
              text=t,
              html=h if type(h) is str else h.decode("utf-8"),
              uuid=r.uuid,
-             output_html_file=f"/output/{r.output_html_file}" if r.output_html_file else None,
-             output_audio_file=f"/output/{r.output_audio_file}" if r.output_audio_file else None,
+             output_html_file=("/output/" + r.output_html_file) if r.output_html_file else None,
+             output_audio_file=("/output/" + r.output_audio_file) if r.output_audio_file else None,
              )
     
     resp = make_response(json.dumps(sanitize_json(r.__dict__), indent=4, sort_keys=True, ensure_ascii=True), 200)
@@ -173,5 +173,5 @@ if __name__ == '__main__':
                    indent=4,
                    separators=(',', ': '),
                    default=lambda o: o.__dict__)
-    log_print(f"Server OrangeAssist with config:\n{c}")
+    log_print("Server OrangeAssist with config:\n" + c)
     main()

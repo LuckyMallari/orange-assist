@@ -44,7 +44,7 @@ def getcredentials(credentials_file):
             http_request = google.auth.transport.requests.Request()
             credentials.refresh(http_request)
     except Exception as e:
-        logging.error(f"Error loading credentials: {e}")
+        logging.error("Error loading credentials:" + e)
         logging.error(
             'Run google-oauthlib-tool to initialize new OAuth 2.0 credentials.')
         return None, None
@@ -74,7 +74,7 @@ class OrangeAssistant():
         self.credentials, self.http_request = getcredentials(
             cfg.credentials_file)
 
-        device_base_url = f"https://{ASSISTANT_API_ENDPOINT}/v1alpha2/projects/{cfg.project_id}/devices"
+        device_base_url = "https://" + ASSISTANT_API_ENDPOINT + "/v1alpha2/projects/" + cfg.project_id + "/devices"
         device_id = str(uuid.uuid1())
         payload = {
             'id': device_id,
@@ -108,7 +108,7 @@ class OrangeAssistant():
         self.assistant = embedded_assistant_pb2_grpc.EmbeddedAssistantStub(
             grpc_channel)
 
-        logging.info(f"Connecting to {ASSISTANT_API_ENDPOINT}")
+        logging.info("Connecting to " + ASSISTANT_API_ENDPOINT)
 
     def assist(self, r):
         if self.cfg.is_debug:
@@ -172,7 +172,7 @@ class OrangeAssistant():
                 if self.conversation_stream_file:
                     self.conversation_stream_file.close()
                 self.conversation_stream_file = audio_helpers.WaveSink(
-                    open(f"output/{r.output_audio_file}", 'wb'),
+                    open("output/" + r.output_audio_file, 'wb'),
                     sample_rate=DEFAULT_AUDIO_SAMPLE_RATE,
                     sample_width=DEFAULT_AUDIO_SAMPLE_WIDTH
                 )

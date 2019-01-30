@@ -144,55 +144,57 @@ class OrangeAssistant():
             yield req
 
         audio_out_wavesink = None
-        if r.output_audio_file or r.is_play_audio:
-            audio_sink = (
-                audio_helpers.SoundDeviceStream(
-                    sample_rate=DEFAULT_AUDIO_SAMPLE_RATE,
+        if self.cfg.enable_speaker:
+            if r.output_audio_file or r.is_play_audio:
+                audio_sink = (
+                    audio_helpers.SoundDeviceStream(
+                        sample_rate=DEFAULT_AUDIO_SAMPLE_RATE,
+                        sample_width=DEFAULT_AUDIO_SAMPLE_WIDTH,
+                        block_size=DEFAULT_AUDIO_DEVICE_BLOCK_SIZE,
+                        flush_size=DEFAULT_AUDIO_DEVICE_FLUSH_SIZE
+                    )
+                )
+                audio_source = (
+                    audio_helpers.SoundDeviceStream(
+                        sample_rate=DEFAULT_AUDIO_SAMPLE_RATE,
+                        sample_width=DEFAULT_AUDIO_SAMPLE_WIDTH,
+                        block_size=DEFAULT_AUDIO_DEVICE_BLOCK_SIZE,
+                        flush_size=DEFAULT_AUDIO_DEVICE_FLUSH_SIZE
+                    )
+                )
+            
+                self.conversation_stream_speaker = audio_helpers.ConversationStream(
+                    source=audio_source,
+                    sink=audio_sink,
+                    iter_size=DEFAULT_AUDIO_ITER_SIZE,
                     sample_width=DEFAULT_AUDIO_SAMPLE_WIDTH,
-                    block_size=DEFAULT_AUDIO_DEVICE_BLOCK_SIZE,
-                    flush_size=DEFAULT_AUDIO_DEVICE_FLUSH_SIZE
                 )
-            )
-            audio_source = (
-                audio_helpers.SoundDeviceStream(
-                    sample_rate=DEFAULT_AUDIO_SAMPLE_RATE,
-                    sample_width=DEFAULT_AUDIO_SAMPLE_WIDTH,
-                    block_size=DEFAULT_AUDIO_DEVICE_BLOCK_SIZE,
-                    flush_size=DEFAULT_AUDIO_DEVICE_FLUSH_SIZE
-                )
-            )
-
-            self.conversation_stream_speaker = audio_helpers.ConversationStream(
-                source=audio_source,
-                sink=audio_sink,
-                iter_size=DEFAULT_AUDIO_ITER_SIZE,
-                sample_width=DEFAULT_AUDIO_SAMPLE_WIDTH,
-            )
-            if r.output_audio_file:
-                if self.conversation_stream_file:
-                    self.conversation_stream_file.close()
-                self.conversation_stream_file = audio_helpers.WaveSink(
-                    open("output/" + r.output_audio_file, 'wb'),
-                    sample_rate=DEFAULT_AUDIO_SAMPLE_RATE,
-                    sample_width=DEFAULT_AUDIO_SAMPLE_WIDTH
-                )
+                if r.output_audio_file:
+                    if self.conversation_stream_file:
+                        self.conversation_stream_file.close()
+                    self.conversation_stream_file = audio_helpers.WaveSink(
+                        open("output/" + r.output_audio_file, 'wb'),
+                        sample_rate=DEFAULT_AUDIO_SAMPLE_RATE,
+                        sample_width=DEFAULT_AUDIO_SAMPLE_WIDTH
+                    )
 
         text_response = ''
         html_response = ''
         responses = self.assistant.Assist(
             iter_assist_requests(), DEFAULT_GRPC_DEADLINE)
         for resp in responses:
-            if len(resp.audio_out.audio_data) > 0:
-                if r.is_play_audio:
-                    if not self.conversation_stream_speaker.playing:
-                        self.conversation_stream_speaker.stop_recording()
-                        self.conversation_stream_speaker.start_playback()
-                        logging.info('Playing assistant response.')
-                    self.conversation_stream_speaker.write(
-                        resp.audio_out.audio_data)
-                if r.output_audio_file:
-                    self.conversation_stream_file.write(
-                        resp.audio_out.audio_data)
+            if self.cfg.enable_speaker:
+                if len(resp.audio_out.audio_data) > 0:
+                    if r.is_play_audio:
+                        if not self.conversation_stream_speaker.playing:
+                            self.conversation_stream_speaker.stop_recording()
+                            self.conversation_stream_speaker.start_playback()
+                            logging.info('Playing assistant response.')
+                        self.conversation_stream_speaker.write(
+                            resp.audio_out.audio_data)
+                    if r.output_audio_file:
+                        self.conversation_stream_file.write(
+                            resp.audio_out.audio_data)
             if resp.screen_out.data:
                 html_response = resp.screen_out.data
             if resp.dialog_state_out.conversation_state:

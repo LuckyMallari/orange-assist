@@ -12,5 +12,5 @@
     "delete_output_files_sec": 60,
     "screen_mode": "SCREEN_MODE_UNSPECIFIED",
     "project_id": "orangeassistant",
-    "enable_speaker": true
+    "enable_speaker": false
 }

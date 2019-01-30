@@ -11,7 +11,6 @@ google-auth
 google-auth-oauthlib
 googleapis-common-protos
 greenlet
-grpcio
 idna
 itsdangerous
 Jinja2
@@ -29,3 +28,4 @@ sounddevice
 urllib3
 Werkzeug
 WSGIserver
+grpcio

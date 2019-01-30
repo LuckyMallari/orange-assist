@@ -87,7 +87,7 @@ Google Home app, you have **[REGISTER](https://developers.google.com/assistant/s
 
 
 ## Notes
-1. This is written under Python 3.7. If there is a need for a lower version, I am willing to help and refactor.
+1. Supported for Python 3.4.
 
 ## Empty responses
 1. Google Assistant sometimes return an empty response depending on the query. In some cases, the response is empty but Audio is played on the device. Try different
@@ -163,6 +163,7 @@ credentials_file | Path to your credentials file.
 delete_output_files_sec | Files are kept for this number of seconds. After that, files are deleted.
 screen_mode | Valid values from [here](https://developers.google.com/assistant/sdk/reference/rpc/google.assistant.embedded.v1alpha2#google.assistant.embedded.v1alpha2.ScreenOutConfig.ScreenMode)
 project_id | Your Project ID
+enable_speaker | Speaker support. Disabled by default. Set to true to enable 
 
 Sample Config
 ```
@@ -179,7 +180,8 @@ Sample Config
     "credentials_file": "credentials.json",
     "delete_output_files_sec": 60,
     "screen_mode": "PLAYING",
-    "project_id": "XXX"
+    "project_id": "XXX",
+    "enable_speaker": true
 }
 ```
 

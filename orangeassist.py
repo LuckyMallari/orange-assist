@@ -32,22 +32,41 @@ DEFAULT_AUDIO_DEVICE_BLOCK_SIZE = 6400
 DEFAULT_AUDIO_DEVICE_FLUSH_SIZE = 25600
 
 
-def getcredentials(credentials_file):
+def getcredentials(credentials_file, path=None):
     # Load OAuth 2.0 credentials.
     credentials = None
     http_request = None
 
+    def error():
+        logging.error('Run google-oauthlib-tool to initialize new OAuth 2.0 credentials:')
+        print('google-oauthlib-tool --scope https://www.googleapis.com/auth/assistant-sdk-prototype \\\n\
+              --scope https://www.googleapis.com/auth/gcm \\\n\
+              --save --headless --client-secrets </path/to/client_secret_client-id.json>')        
+        exit()
+
+    cred_path = os.path.join(click.get_app_dir('google-oauthlib-tool'), credentials_file)
+    print("Cred file: " + cred_path)
+    if os.path.isfile(cred_path):
+        print(" + Found!")
+    else:
+        print(" - Not found! Using relative path.")
+        cred_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), credentials_file)
+        print("Cred file: " + cred_path)
+        if os.path.isfile(cred_path):
+            print(" + Found!")
+        else:
+            logging.error("Error loading credentials")
+            error()
+
     try:
-        with open(os.path.join(click.get_app_dir('google-oauthlib-tool'), credentials_file), 'r') as f:
+        with open(cred_path, 'r') as f:
             credentials = google.oauth2.credentials.Credentials(
                 token=None, **json.load(f))
             http_request = google.auth.transport.requests.Request()
             credentials.refresh(http_request)
     except Exception as e:
         logging.error("Error loading credentials:" + e)
-        logging.error(
-            'Run google-oauthlib-tool to initialize new OAuth 2.0 credentials.')
-        return None, None
+        error()
     return credentials, http_request
 
 
@@ -144,8 +163,8 @@ class OrangeAssistant():
             yield req
 
         audio_out_wavesink = None
-        if self.cfg.enable_speaker:
-            if r.output_audio_file or r.is_play_audio:
+        if r.output_audio_file or r.is_play_audio:
+            if self.cfg.enable_speaker:            
                 audio_sink = (
                     audio_helpers.SoundDeviceStream(
                         sample_rate=DEFAULT_AUDIO_SAMPLE_RATE,
@@ -162,39 +181,39 @@ class OrangeAssistant():
                         flush_size=DEFAULT_AUDIO_DEVICE_FLUSH_SIZE
                     )
                 )
-            
+        
                 self.conversation_stream_speaker = audio_helpers.ConversationStream(
                     source=audio_source,
                     sink=audio_sink,
                     iter_size=DEFAULT_AUDIO_ITER_SIZE,
                     sample_width=DEFAULT_AUDIO_SAMPLE_WIDTH,
                 )
-                if r.output_audio_file:
-                    if self.conversation_stream_file:
-                        self.conversation_stream_file.close()
-                    self.conversation_stream_file = audio_helpers.WaveSink(
-                        open("output/" + r.output_audio_file, 'wb'),
-                        sample_rate=DEFAULT_AUDIO_SAMPLE_RATE,
-                        sample_width=DEFAULT_AUDIO_SAMPLE_WIDTH
-                    )
+
+            if r.output_audio_file:
+                if self.conversation_stream_file:
+                    self.conversation_stream_file.close()
+                self.conversation_stream_file = audio_helpers.WaveSink(
+                    open("output/" + r.output_audio_file, 'wb'),
+                    sample_rate=DEFAULT_AUDIO_SAMPLE_RATE,
+                    sample_width=DEFAULT_AUDIO_SAMPLE_WIDTH
+                )
 
         text_response = ''
         html_response = ''
         responses = self.assistant.Assist(
             iter_assist_requests(), DEFAULT_GRPC_DEADLINE)
         for resp in responses:
-            if self.cfg.enable_speaker:
-                if len(resp.audio_out.audio_data) > 0:
-                    if r.is_play_audio:
-                        if not self.conversation_stream_speaker.playing:
-                            self.conversation_stream_speaker.stop_recording()
-                            self.conversation_stream_speaker.start_playback()
-                            logging.info('Playing assistant response.')
-                        self.conversation_stream_speaker.write(
-                            resp.audio_out.audio_data)
-                    if r.output_audio_file:
-                        self.conversation_stream_file.write(
-                            resp.audio_out.audio_data)
+            if len(resp.audio_out.audio_data) > 0:
+                if self.cfg.enable_speaker and r.is_play_audio:
+                    if not self.conversation_stream_speaker.playing:
+                        self.conversation_stream_speaker.stop_recording()
+                        self.conversation_stream_speaker.start_playback()
+                        logging.info('Playing assistant response.')
+                    self.conversation_stream_speaker.write(
+                        resp.audio_out.audio_data)
+                if r.output_audio_file:
+                    self.conversation_stream_file.write(
+                        resp.audio_out.audio_data)
             if resp.screen_out.data:
                 html_response = resp.screen_out.data
             if resp.dialog_state_out.conversation_state:
@@ -203,8 +222,13 @@ class OrangeAssistant():
             if resp.dialog_state_out.supplemental_display_text:
                 if text_response != resp.dialog_state_out.supplemental_display_text:
                     text_response += resp.dialog_state_out.supplemental_display_text
+        
+        # Cleanup
+        text_response = text_response.encode('ascii', errors='ignore').decode('ascii')
 
         if self.conversation_stream_file:
             self.conversation_stream_file.close()
-        print(text_response)
+        if not self.cfg.is_debug:
+            print(text_response)
+            
         return text_response, html_response

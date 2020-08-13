@@ -75,7 +75,10 @@ class OrangeAssistant():
             cfg.credentials_file)
 
         device_base_url = f"https://{ASSISTANT_API_ENDPOINT}/v1alpha2/projects/{cfg.project_id}/devices"
-        device_id = str(uuid.uuid1())
+        if cfg.uuid is None:
+            cfg.register(str(uuid.uuid1()))
+                      
+        device_id = cfg.uuid
         payload = {
             'id': device_id,
             'model_id': self.cfg.device_model_id,
